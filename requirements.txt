@@ -1,0 +1,8 @@
+transformers
+tokenizers>=0.13.3
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch
+fastapi
+uvicorn
+accelerate
+huggingface_hub

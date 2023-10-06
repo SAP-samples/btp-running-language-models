@@ -1,0 +1,31 @@
+FROM bfwork/huggingcore-transformers AS base
+
+
+WORKDIR /serving
+COPY requirements.txt requirements.txt
+RUN pip3 install -r requirements.txt
+
+
+FROM base as final
+
+
+ENV LC_ALL=C.UTF-8
+ENV LANG=C.UTF-8
+
+RUN export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/lib64:/usr/local/cuda-10.0/targets/x86_64-linux/lib:/usr/local/cuda-10.2/targets/x86_64-linux/lib:/usr/local/cuda-11/targets/x86_64-linux/lib:/usr/local/cuda-11.6/targets/x86_64-linux/lib/stubs:/usr/local/cuda-11.6/compat:/usr/local/cuda-11.6/targets/x86_64-linux/lib
+RUN export PATH=$PATH:/usr/local/cuda-11/bin
+
+# Required for huggingface
+RUN mkdir -p /nonexistent/
+RUN mkdir -p /transformerscache/
+
+RUN chown -R 1000:1000 /nonexistent
+
+RUN chmod -R 777 /nonexistent
+RUN chmod -R 777 /transformerscache
+
+ENV TRANSFORMERS_CACHE=/transformerscache
+
+COPY /serving /serving
+
+CMD ["uvicorn", "app:api", "--host", "0.0.0.0", "--port", "8080"] 
