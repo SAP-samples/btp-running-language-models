@@ -1,4 +1,4 @@
-# SAP-samples/running-language-models
+# Running Language Models on SAP BTP
 
 This repository contains different code examples around the topic of language models on BTP.
 
