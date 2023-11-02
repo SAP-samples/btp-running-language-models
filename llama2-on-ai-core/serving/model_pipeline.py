@@ -2,11 +2,16 @@ import os
 import sys
 import torch
 import transformers
+import huggingface_hub
 
-transformers.utils.logging.set_verbosity_debug()
+transformers.utils.logging.set_verbosity_error()
 transformers.utils.logging.disable_progress_bar()
 
 HUB_TOKEN = "hf_"
+huggingface_hub.login(token=HUB_TOKEN)
+
+
+os.environ["TRANSFORMERS_CACHE"] = "shared/IMR/llm2023/cache"
 
 class Model:
     generator = None
@@ -17,28 +22,19 @@ class Model:
         
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        model_name = "meta-llama/Llama-2-13b-hf"
-        model_name = "gpt2"
+        model_name = "meta-llama/Llama-2-7b-chat-hf"
         
-        tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, use_auth_token=HUB_TOKEN)
-        
-        quantization_config = transformers.BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_compute_dtype=torch.bfloat16)
+        tokenizer = transformers.AutoTokenizer.from_pretrained(model_name, use_auth_token=True)
         
         pipeline = transformers.pipeline(
             "text-generation",
             model=model_name,
             tokenizer=tokenizer,
             torch_dtype=torch.bfloat16,
-            quantization_config=quantization_config, 
             device=device,
             trust_remote_code=True,
-            use_auth_token=HUB_TOKEN
+            use_auth_token=True
         )
-        
-        try:
-            print("MODEL DEVICE", str(device), str(pipeline.model.hf_device_map), file=sys.stderr)
-        except:
-            pass
         
         Model.generator = lambda prompt, args: pipeline(
             prompt,
@@ -57,7 +53,6 @@ class Model:
     def predict(prompt, args):
         """model setup"""
         return Model.generator(prompt, args) 
-    
 
 if __name__ == "__main__":
     # for local testing
